@@ -58,7 +58,7 @@ vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d){
 void main() {
     int
     iterations = 0,
-    max_iterations = 500;
+    max_iterations = 150;
 
     vec2
     const_number = vec2(cos(u_time/10.), sin(u_time/10.)),

@@ -17,12 +17,20 @@
         }
         canvas {
             position: fixed;
-            width: 100%;
-            height: 100%;
         }
     </style>
 </head>
 <body>
-    <canvas class="glsl-canvas" data-fragment-url="fragment.glsl" width="1600px" height="900px"></canvas>
+    <canvas id="#canvas" class="glsl-canvas" data-fragment-url="fragment.glsl" width="2000" height="2000"></canvas>
+    <script>
+        var displayWidth = 100;
+        var displayHeight = 100;
+        var canvas = document.getElementById("#canvas");
+        var scale = 4;
+        canvas.style.width = displayWidth + '%';
+        canvas.style.height = displayHeight + '%';
+        canvas.width = displayWidth * scale;
+        canvas.height = displayHeight * scale;
+    </script>
 </body>
 </html>
