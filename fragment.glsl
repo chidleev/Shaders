@@ -51,31 +51,54 @@ vec2 cplx_pow(in vec2 a, int p)
 	return temp;
 }
 
-vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d){
+vec3 palette(float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d){
 	return a + b * cos(TWO_PI*(c*t + d));
 }
 
-void main() {
-    int
-    iterations = 0,
-    max_iterations = 150;
+float IterateMandelbrot( in vec2 c )
+{
+    const float B = 256.0;
 
+    float n = 0.0;
+    vec2 z  = vec2(0.0);
+    for( int i=0; i<200; i++ )
+    {
+        z = vec2( z.x*z.x - z.y*z.y, 2.0*z.x*z.y ) + c; // z = z² + c
+        if( dot(z,z)>(B*B) ) break;
+        n += 1.0;
+    }
+
+    //float sn = n - log(log(length(z))/log(B))/log(2.0); // smooth iteration count
+    float sn = n - log2(log2(dot(z,z))) + 4.0;  // equivalent optimized smooth iteration count
+    
+    return sn;
+}
+
+void main() {
     vec2
-    const_number = vec2(cos(u_time/10.), sin(u_time/10.)),
+    time_number = vec2(cos(u_time/1.), sin(u_time/1.)),
     pixel = 6. * st + vec2(0., 0.),
     current_number = pixel + vec2(0., 0.),
     last_number = current_number;
 
-    for (;(iterations < max_iterations) && (length(current_number) < 8.); iterations++) {
+    int
+    iterations = 0,
+    max_iterations = 250;
+
+    const float max_distance = 10.0;
+
+    for (;(iterations < max_iterations); iterations++) {
         last_number = current_number;
         current_number = cplx_pow(current_number, -2) + mx;
+        if (dot(current_number, current_number) > (max_distance * max_distance) ) break;
     }
 
     float iterations_mask = float(iterations)/float(max_iterations);
+    float smooth_iterations_mask = float(iterations) - log(log(length(current_number))/log(max_distance))/log(2.0);
 
-    float color_speed = 1./20.;
-    vec3 color_offset = vec3(0.5);
-    vec3 color_palette = palette(iterations_mask / 2., vec3(0.5), vec3(0.5), vec3(1.0), color_offset);
+    float color_speed = 1./10.;
+    vec3 color_offset = vec3(0.2, 0.35, 0.4);
+    vec3 color_palette = palette(smooth_iterations_mask / 125. + u_time * color_speed, vec3(0.5), vec3(0.5), vec3(0.5), color_offset);
     
-    outColor = vec4(color_palette, 1.0);
+    outColor = vec4(color_palette, 1.);
 }
