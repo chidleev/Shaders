@@ -6,7 +6,7 @@ async function init() {
         qualityFactor: 1
     };
 
-    let response = await fetch("./fragment.glsl");
+    let response = await fetch("./shaders/star.glsl");
     if (response.ok) {
         options.fragmentString = await response.text();
     } else {
