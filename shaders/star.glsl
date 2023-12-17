@@ -65,8 +65,8 @@ vec3 star(in vec3 ray_direction, float size) {
 
     float angle = acos(dot(ray_direction, vec3(0., -1, 0.)));
 
-    for (int y = -10; y <= 10; y++) {
-        for (int x = -10; x <= 10; x++) {
+    for (int y = -5; y <= 5; y++) {
+        for (int x = -5; x <= 5; x++) {
             vec2 offset = vec2(x, y);
 
             vec3 position_on_floor = floor(2. * ray_direction * tan(angle)) + 0.5;
@@ -76,7 +76,11 @@ vec3 star(in vec3 ray_direction, float size) {
 
             float distance_to_ray = length(position_on_floor - ray_direction * dot(position_on_floor, ray_direction));
             
-            color += vec3(pow(size / (distance_to_ray * length(position_on_floor)), 1.4));
+            vec3 clr = vec3(Hash21(position_on_floor.xx),
+                            Hash21(position_on_floor.xz),
+                            Hash21(position_on_floor.zz));
+
+            color += clr * vec3(pow(size / (distance_to_ray * length(position_on_floor)), 2.5));
         }
     }
 
@@ -99,8 +103,8 @@ vec3 star_layer() {
     vec3 top = cross(view_direction, right);
     vec3 ray_direction = normalize(D * view_direction + FOV * right + 0.5 * uv.y * top);
     
-    color = star(ray_direction, 0.1);
-    color = mix(color, vec3(0), pow(1. - abs(uv.y), 1.));
+    color = star(ray_direction, 0.5);
+    color *= vec3(smoothstep(0.05, 1., abs(uv.y)));
 
     return color;
 }
