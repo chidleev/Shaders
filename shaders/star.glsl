@@ -60,16 +60,26 @@ float star_rays(in vec3 position, float size, float angle) {
     return 2. * pow(1. - abs(position_on_screen.x * position_on_screen.y), size * position.z * position.z);
 }
 
-vec3 star(in vec3 position, float size, float angle) {
+vec3 star(in vec3 ray_direction, float size) {
     vec3 color = vec3(0.0, 0.0, 0.0);
 
-    float D = 15.;
-    D /= (0.7 - uv.y);
-    vec2 coords_on_floor = D * rotateY(vec3(0., 0., 1.), uv.x * PI/6.).xz / cos(uv.x * PI/6.);
+    float angle = acos(dot(ray_direction, vec3(0., -1, 0.)));
 
-    vec2 position_on_screen = (fract(coords_on_floor) - 0.5) - (position.xy);
+    for (int y = -10; y <= 10; y++) {
+        for (int x = -10; x <= 10; x++) {
+            vec2 offset = vec2(x, y);
 
-    color += vec3(pow(size / (length(position_on_screen) * position.z), 1.5));
+            vec3 position_on_floor = floor(2. * ray_direction * tan(angle)) + 0.5;
+            position_on_floor.x += offset.x;
+            position_on_floor.z += offset.y;
+            position_on_floor.y = -2. + .5* sin((u_time + position_on_floor.x) / 2.) * cos((u_time + position_on_floor.z) / 2.);
+
+            float distance_to_ray = length(position_on_floor - ray_direction * dot(position_on_floor, ray_direction));
+            
+            color += vec3(pow(size / (distance_to_ray * length(position_on_floor)), 1.4));
+        }
+    }
+
     /*color *= vec3(star_rays(position, 3./size, angle + PI_TWO) + 
                   star_rays(position, 3./size, angle + PI_TWO / 2.));
 
@@ -82,30 +92,16 @@ vec3 star(in vec3 position, float size, float angle) {
 vec3 star_layer() {
     vec3 color = vec3(0.);
 
-    float D = 20., FOV = PI/3.;
-    D /= (.8 - uv.y);
-    vec2 coords_on_floor = D * rotateY(vec3(0., 0., 1.), 0.5 * uv.x * FOV + u_time / 10.).xz / cos(0.5 * uv.x * FOV) + vec2(u_time);
-    vec2 ID = floor(coords_on_floor);
-    vec2 fract_coords = fract(coords_on_floor);
-
-    for (int y = -2; y <= 2; y++) {
-        for (int x = -2; x <= 2; x++) {
-            vec2 offset = vec2(x, y);
-            color += step(distance(ID + offset, coords_on_floor), 0.5);
-        }
-    }
-        
-    //color += vec3(0.4, 0.6, 1.0) * star(vec3(floor(coords_on_floor.x), -0.5, floor(coords_on_floor.y)), 5.2, 0.);
-
-    /*for (int z = 1; z <= 50; z++)
-        for (int y = -1; y <= -1; y++)
-            for (int x = -1; x <= 1; x++) {
-                vec3 offset = vec3(float(-x) / 10., float(y) + 0.1 * sin(6.*float(z)+u_time) + 1., float(z)/10.);
-                color += vec3(0.4, 0.6, 1.0) * star(offset, .002, 0.);
-            }
-    */
-
+    float FOV = uv.x * PI/6., D = 0.5;
+    //vec3 origin_position = vec3(0., 1., 0.);
+    vec3 view_direction = rotateY(normalize(vec3(0., 0., 1.)), u_time / 50.);
+    vec3 right = cross(vec3(0., 1., 0.), view_direction);
+    vec3 top = cross(view_direction, right);
+    vec3 ray_direction = normalize(D * view_direction + FOV * right + 0.5 * uv.y * top);
     
+    color = star(ray_direction, 0.1);
+    color = mix(color, vec3(0), pow(1. - abs(uv.y), 1.));
+
     return color;
 }
 
