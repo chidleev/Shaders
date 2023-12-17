@@ -104,7 +104,7 @@ vec3 star_layer() {
     vec3 ray_direction = normalize(D * view_direction + FOV * right + 0.5 * uv.y * top);
     
     color = star(ray_direction, 0.5);
-    color *= vec3(smoothstep(0.05, 1., abs(uv.y)));
+    color *= vec3(smoothstep(0.05, 0.5, abs(uv.y)));
 
     return color;
 }
